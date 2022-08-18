@@ -1,0 +1,9 @@
+<!-- modal new academic program -->
+{% extends 'index-modals/modalBase.html' %}
+{%  block id_modal %}modalNAP{% endblock %}
+{%  block title %} Nuevo programa {% endblock %}
+{% block url %}{% url 'index' %}{% endblock %}
+{%  block value-flag %}nap{% endblock %}
+{% block modal-body-form %} {{ form_addprog }} {% endblock %}
+{%  block action-btn-class %} btn btn-primary {% endblock %}
+{%  block action-btn-text %} Guardar {% endblock %}

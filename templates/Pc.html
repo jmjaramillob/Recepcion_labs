@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PCs</title>
+    <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}">
+    <link rel="stylesheet" href="{% static "css/fontawesome-all.min.css" %}">
+    <script src="{% static "js/jquery-3.3.1.min.js" %}"></script>
+    <script src="{% static "js/popper.min.js" %}"></script>
+    <script src="{% static "js/bootstrap.min.js" %}"></script>
+</head>
+<body>
+    <main class="container col-sm-4" align="center" style="margin-top: 20px;">
+        <div class="row mt-3" align="center">
+            <div class="table-responsive">
+                <table class="table table-bordered table-dark">{% csrf_token %}
+                    <thead>
+                        <tr>
+                            <th scope="col" style="margin: auto;">Numero PC</th>
+                            <th scope="col">
+                                <p style="float: left; margin: auto;">Estado</p>
+                                <div align="right">
+                                    <button type="button" class="btn btn-info btn-sm" onclick="action(0)">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="action(1)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalNPc">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for object in list %}
+                        <tr>
+                            <td>{{ object.name }}</td>
+                            <td>
+                                {% if object.pc_disp == True %}
+                                    Disponible
+                                {% else %}
+                                    Ocupado
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm" id="changeState" onclick="action(2, {{ object.id }})">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                                <button style="float: right;" type="button" class="btn btn-danger btn-sm" id="delPc" onclick="action(3, {{ object.id }})">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    {% include 'pc-modals/modalNPc.html' %}
+
+    <script type="text/javascript">
+        function action(){
+            let id = arguments[1];
+            let request;
+            const csrftoken = getCookie('csrftoken');
+            if (arguments[0] === 0){
+                request = $.ajax({
+                    url: '{% url 'pc' %}',
+                    type: "POST",
+                    data: {
+                        'fun': 'all_av',
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]')[0].value,
+                    },
+                    dataType: "html"
+                });
+            }else if (arguments[0] === 1){
+                request = $.ajax({
+                    url: '{% url 'pc' %}',
+                    type: "POST",
+                    data: {
+                        'fun': 'not_av',
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]')[0].value,
+                    },
+                    dataType: "html"
+                });
+            }else if (arguments[0] === 2){
+                request = $.ajax({
+                    url: '{% url 'pc' %}',
+                    type: "POST",
+                    data: {
+                        'id': id,
+                        'fun': 'updt',
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]')[0].value,
+                    },
+                    dataType: "html"
+                });
+            }else if (arguments[0] === 3){
+                request = $.ajax({
+                    url: '{% url 'pc' %}',
+                    type: "POST",
+                    data: {
+                        'id': id,
+                        'fun': 'del',
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]')[0].value,
+                    },
+                    dataType: "html"
+                });
+            }
+
+
+            request.done(function(msg) {
+                location.reload(true);
+            });
+
+            request.fail(function(jqXHR, textStatus) {
+                alert( "Request failed: " + textStatus );
+            });
+
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                let cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    let cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+    </script>
+</body>
+</html>
